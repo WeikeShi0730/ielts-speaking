@@ -76,7 +76,6 @@ onMounted(() => {
 // 方法
 const selectType = async (type) => {
   const data = dataset;
-  console.log(data);
   store.dispatch("initPractice", {
     type,
     questions: data[type],

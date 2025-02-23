@@ -732,7 +732,6 @@ const _sfc_main = {
     });
     const selectType = async (type) => {
       const data = dataset;
-      common_vendor.index.__f__("log", "at pages/index/index.vue:79", data);
       store.dispatch("initPractice", {
         type,
         questions: data[type]

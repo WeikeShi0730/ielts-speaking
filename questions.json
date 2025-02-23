@@ -1,0 +1,48 @@
+{
+  "part1": [
+    {
+      "question": "What is your country famous for?",
+      "reference": ""
+    },
+    {
+      "question": "Where do you live in your country?",
+      "reference": ""
+    },
+    {
+      "question": "Is it a interesting place to live?",
+      "reference": ""
+    },
+    {
+      "question": "Are you planning to live there in the future?",
+      "reference": ""
+    },
+    {
+      "question": "How is the weather today?",
+      "reference": ""
+    },
+    {
+      "question": "What’s your favourite kind of weather?",
+      "reference": ""
+    },
+    {
+      "question": "Is there any type of weather you really don’t like?",
+      "reference": ""
+    },
+    {
+      "question": "What is the climate like in your country?",
+      "reference": ""
+    },
+    {
+      "question": "Does the weather affect people’s lives in your country?",
+      "reference": ""
+    },
+    {
+      "question": "Do people change in the summer?",
+      "reference": ""
+    },
+    {
+      "question": "Does bad weather ever affect transport in your country?",
+      "reference": ""
+    }
+  ]
+}

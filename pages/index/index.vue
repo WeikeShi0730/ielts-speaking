@@ -12,6 +12,12 @@
       </button>
     </view>
 
+    <view>
+      <picker mode="selector" :range="topics" @change="onTopicChange">
+        <view class="picker"> Current Topic：{{ selectedTopic }} </view>
+      </picker>
+    </view>
+
     <!-- 问题展示 -->
     <view class="question-container" v-if="currentQuestion">
       <text class="question-text">{{ currentQuestion }}</text>
@@ -52,6 +58,8 @@ const store = useStore();
 // 响应式数据
 const recordingTime = ref(0);
 const isRecording = ref(false);
+const selectedTopic = ref("");
+const topics = ref([]);
 let timer = null;
 
 // 从 Vuex 获取状态
@@ -67,19 +75,39 @@ const practiceTypes = computed(() => config.practiceTypes);
 // 初始化
 onMounted(() => {
   recorder.init();
-  store.dispatch("initPractice", {
-    type: "part1",
-    questions: dataset.part1,
-  });
+  const type = "part1"; // init with part 1
+  topics.value = Object.keys(dataset[type]);
+  if (topics.value.length > 0) {
+    selectedTopic.value = topics.value[0];
+    store.dispatch("initPractice", {
+      type: type,
+      questions: dataset[type],
+    });
+  }
 });
 
 // 方法
-const selectType = async (type) => {
-  const data = dataset;
-  store.dispatch("initPractice", {
-    type,
-    questions: data[type],
-  });
+const selectType = (type) => {
+  topics.value = Object.keys(dataset[type]);
+  if (topics.value.length > 0) {
+    selectedTopic.value = topics.value[0];
+    store.dispatch("initPractice", {
+      type,
+      questions: dataset[type][selectedTopic.value],
+    });
+  }
+};
+
+// 主题改变时更新问题
+const onTopicChange = async (event) => {
+  const index = event.detail.value;
+  if (topics.value.length > 0) {
+    selectedTopic.value = topics.value[index];
+    store.dispatch("initPractice", {
+      type: currentType.value,
+      questions: dataset[currentType.value][selectedTopic.value],
+    });
+  }
 };
 
 const handleRecord = async () => {
@@ -124,11 +152,40 @@ const handleRecord = async () => {
   margin: 5px;
   padding: 10px 20px;
   border-radius: 5px;
+  background-color: #f0f0f0;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
 .type-btn.active {
   background-color: #007bff;
   color: white;
+}
+
+.topic-selector {
+  margin-top: 15px;
+}
+
+.topic-selector select {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  background-color: white;
+  font-size: 16px;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007BFF%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 12px auto;
+  cursor: pointer;
+}
+
+.topic-selector select:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
 }
 
 .question-container {
@@ -152,6 +209,10 @@ const handleRecord = async () => {
   border-radius: 25px;
   background-color: #007bff;
   color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.2s;
 }
 
 .record-btn.recording {

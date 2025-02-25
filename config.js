@@ -1,6 +1,6 @@
 export default {
   // 练习类型
-  practiceTypes: ['part1', 'part3'],
+  practiceTypes: ['part1','part2', 'part3'],
   
   // 录音配置
   recordOptions: {
@@ -14,6 +14,6 @@ export default {
   // Deepseek API配置
   deepseek: {
     apiUrl: 'https://api.deepseek.com/evaluate',
-    apiKey: 'sk-1fd33e11dfa14b6eb3584f287a145e84' // 请替换为实际API Key
+    apiKey: 'sk-' // 请替换为实际API Key
   }
 }

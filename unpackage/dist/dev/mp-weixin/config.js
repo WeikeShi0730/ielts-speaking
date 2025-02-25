@@ -1,7 +1,7 @@
 "use strict";
 const config = {
   // 练习类型
-  practiceTypes: ["part1", "part3"],
+  practiceTypes: ["part1", "part2", "part3"],
   // 录音配置
   recordOptions: {
     duration: 1e4,
@@ -14,7 +14,7 @@ const config = {
   // Deepseek API配置
   deepseek: {
     apiUrl: "https://api.deepseek.com/evaluate",
-    apiKey: "sk-1fd33e11dfa14b6eb3584f287a145e84"
+    apiKey: "sk-"
     // 请替换为实际API Key
   }
 };

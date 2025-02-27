@@ -4,6 +4,8 @@ const store = common_vendor.createStore({
   state: {
     // 当前练习类型
     currentType: "",
+    // 当前练习主题
+    currentTopic: "",
     // 当前练习问题列表
     questions: [],
     // 当前问题索引
@@ -18,6 +20,11 @@ const store = common_vendor.createStore({
   mutations: {
     SET_TYPE(state, type) {
       state.currentType = type;
+      state.currentTopic = "";
+      state.questions = [];
+    },
+    SET_TOPIC(state, topic) {
+      state.currentTopic = topic;
     },
     SET_QUESTIONS(state, questions) {
       state.questions = questions;
@@ -41,8 +48,11 @@ const store = common_vendor.createStore({
   },
   actions: {
     // 初始化练习
-    initPractice({ commit }, { type, questions }) {
+    setType({ commit }, { type }) {
       commit("SET_TYPE", type);
+    },
+    setTopic({ commit }, { topic, questions }) {
+      commit("SET_TOPIC", topic);
       commit("SET_QUESTIONS", questions);
     },
     // 提交回答
@@ -66,7 +76,7 @@ const store = common_vendor.createStore({
         method: "POST",
         header: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${config.deepseek.apiKey}`
+          Authorization: `Bearer ${config.deepseek.apiKey}`
         },
         data: evaluationData
       });

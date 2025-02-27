@@ -711,6 +711,11 @@ const dataset = {
   part2,
   part3
 };
+if (!Array) {
+  const _component_path = common_vendor.resolveComponent("path");
+  const _component_svg = common_vendor.resolveComponent("svg");
+  (_component_path + _component_svg)();
+}
 const _sfc_main = {
   __name: "index",
   setup(__props) {
@@ -720,6 +725,7 @@ const _sfc_main = {
     const selectedTopic = common_vendor.ref("");
     const topics = common_vendor.ref([]);
     const currentType = common_vendor.computed(() => store.state.currentType);
+    const currentTopic = common_vendor.computed(() => store.state.currentTopic);
     const questions = common_vendor.computed(() => store.state.questions);
     const currentIndex = common_vendor.computed(() => store.state.currentIndex);
     const evaluation = common_vendor.computed(() => store.state.evaluation);
@@ -731,21 +737,12 @@ const _sfc_main = {
       utils_recorder.recorder.init();
       const type = "part1";
       topics.value = Object.keys(dataset[type]);
-      if (topics.value.length > 0) {
-        selectedTopic.value = topics.value[0];
-        store.dispatch("initPractice", {
-          type,
-          questions: dataset[type]
-        });
-      }
     });
-    const selectType = (type) => {
+    const onTypeChange = (type) => {
       topics.value = Object.keys(dataset[type]);
       if (topics.value.length > 0) {
-        selectedTopic.value = topics.value[0];
-        store.dispatch("initPractice", {
-          type,
-          questions: dataset[type][selectedTopic.value]
+        store.dispatch("setType", {
+          type
         });
       }
     };
@@ -753,9 +750,12 @@ const _sfc_main = {
       const index = event.detail.value;
       if (topics.value.length > 0) {
         selectedTopic.value = topics.value[index];
-        store.dispatch("initPractice", {
-          type: currentType.value,
-          questions: dataset[currentType.value][selectedTopic.value]
+        store.dispatch("setType", {
+          type: currentType.value
+        });
+        store.dispatch("setTopic", {
+          topic: selectedTopic.value,
+          questions: Object.values(dataset[currentType.value][selectedTopic.value])
         });
       }
     };
@@ -789,25 +789,31 @@ const _sfc_main = {
             c: common_vendor.n({
               active: currentType.value === type
             }),
-            d: common_vendor.o(($event) => selectType(type), type)
+            d: common_vendor.o(($event) => onTypeChange(type), type)
           };
         }),
-        b: common_vendor.t(selectedTopic.value),
-        c: topics.value,
-        d: common_vendor.o(onTopicChange),
-        e: currentQuestion.value
+        b: common_vendor.t(currentTopic.value || "Choose a topic"),
+        c: common_vendor.p({
+          d: "M7 10l5 5 5-5z"
+        }),
+        d: common_vendor.p({
+          viewBox: "0 0 24 24"
+        }),
+        e: topics.value,
+        f: common_vendor.o(onTopicChange),
+        g: currentQuestion.value
       }, currentQuestion.value ? {
-        f: common_vendor.t(currentQuestion.value),
-        g: common_vendor.t(currentIndex.value + 1),
-        h: common_vendor.t(questions.value.length)
+        h: common_vendor.t(currentQuestion.value),
+        i: common_vendor.t(currentIndex.value + 1),
+        j: common_vendor.t(questions.value.length)
       } : {}, {
-        i: common_vendor.t(isRecording.value ? `Recording... ${recordingTime.value}s` : "Start Recording"),
-        j: isRecording.value ? 1 : "",
-        k: common_vendor.o(handleRecord),
-        l: evaluation.value
+        k: common_vendor.t(isRecording.value ? `Recording... ${recordingTime.value}s` : "Start"),
+        l: isRecording.value ? 1 : "",
+        m: common_vendor.o(handleRecord),
+        n: evaluation.value
       }, evaluation.value ? {
-        m: common_vendor.t(evaluation.value.score),
-        n: common_vendor.t(evaluation.value.feedback)
+        o: common_vendor.t(evaluation.value.score),
+        p: common_vendor.t(evaluation.value.feedback)
       } : {});
     };
   }

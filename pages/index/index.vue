@@ -30,10 +30,14 @@
 
     <!-- 问题展示 -->
     <view class="question-container" v-if="currentQuestion">
-      <text class="question-text">{{ currentQuestion }}</text>
       <text class="progress-text"
-        >Question {{ currentIndex + 1 }} of {{ questions.length }}</text
+        >Question
+        {{
+          currentIndex + 1 > questions.length ? currentIndex : currentIndex + 1
+        }}
+        of {{ questions.length }}</text
       >
+      <text class="question-text">{{ currentQuestion }}</text>
     </view>
 
     <!-- 录音控制 -->
@@ -45,6 +49,11 @@
       >
         {{ isRecording ? `Recording... ${recordingTime}s` : "Start" }}
       </button>
+    </view>
+
+    <view class="loading-container" v-if="isLoading">
+      <view class="loading-spinner"></view>
+      <text class="loading-text">Loading...</text>
     </view>
 
     <!-- 评价结果 -->
@@ -78,6 +87,7 @@ const currentTopic = computed(() => store.state.currentTopic);
 const questions = computed(() => store.state.questions);
 const currentIndex = computed(() => store.state.currentIndex);
 const evaluation = computed(() => store.state.evaluation);
+const isLoading = computed(() => store.state.isLoading);
 const currentQuestion = computed(() => store.getters.currentQuestion);
 const progress = computed(() => store.getters.progress);
 const isFinished = computed(() => store.getters.isFinished);
@@ -117,30 +127,34 @@ const onTopicChange = async (event) => {
 
 const handleRecord = async () => {
   // TODO: when questions are selected
-  if (isRecording.value) {
-    isRecording.value = false;
-    const { filePath, duration } = await recorder.stop();
+  if (currentQuestion !== null && currentQuestion !== undefined) {
+    if (isRecording.value) {
+      isRecording.value = false;
+      const { filePath, duration } = await recorder.stop();
 
-    // 语音转文字
-    const text = await api.speechToText(filePath);
+      // 语音转文字
+      // const text = await api.speechToText(filePath);
+      const text = "I'm Jack, I'm 12 years old";
 
-    // 提交回答
-    await store.dispatch("submitAnswer", {
-      audioPath: filePath,
-      text,
-    });
+      // 提交回答
+      await store.dispatch("appendAnswer", {
+        // audioPath: filePath,
+        audioPath: "",
+        answer: text,
+      });
 
-    // 如果是最后一个问题，提交评价
-    if (isFinished.value) {
-      await store.dispatch("submitEvaluation");
+      // 如果是最后一个问题，提交评价
+      if (isFinished.value) {
+        await store.dispatch("submitQAs");
+      }
+    } else {
+      isRecording.value = true;
+      await recorder.start();
+      recordingTime.value = 0;
+      timer = setInterval(() => {
+        recordingTime.value = recorder.getCurrentTime();
+      }, 1000);
     }
-  } else {
-    isRecording.value = true;
-    await recorder.start();
-    recordingTime.value = 0;
-    timer = setInterval(() => {
-      recordingTime.value = recorder.getCurrentTime();
-    }, 1000);
   }
 };
 </script>
@@ -254,10 +268,9 @@ const handleRecord = async () => {
 }
 
 .question-text {
-  font-size: 18px;
-  font-weight: 600;
+  font-size: 16px;
+  font-weight: 500;
   color: #333;
-  line-height: 1.5;
   margin-bottom: 8px;
 }
 
@@ -283,6 +296,40 @@ const handleRecord = async () => {
 
 .record-btn.recording {
   background-color: #dc3545;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  margin: 20px 0;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.loading-text {
+  margin-top: 12px;
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .evaluation-result {

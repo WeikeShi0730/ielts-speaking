@@ -1,5 +1,7 @@
 "use strict";
 const common_vendor = require("../common/vendor.js");
+const utils_index = require("../utils/index.js");
+const config = require("../config.js");
 const store = common_vendor.createStore({
   state: {
     // 当前练习类型
@@ -11,9 +13,11 @@ const store = common_vendor.createStore({
     // 当前问题索引
     currentIndex: 0,
     // 用户回答记录
-    answers: [],
+    qas: [],
     // 录音状态
     isRecording: false,
+    // 加载
+    isLoading: false,
     // 评价结果
     evaluation: null
   },
@@ -22,22 +26,28 @@ const store = common_vendor.createStore({
       state.currentType = type;
       state.currentTopic = "";
       state.questions = [];
+      state.qas = [];
+      state.evaluation = null;
     },
     SET_TOPIC(state, topic) {
       state.currentTopic = topic;
+      state.questions = [];
+      state.qas = [];
+      state.evaluation = null;
     },
     SET_QUESTIONS(state, questions) {
       state.questions = questions;
       state.currentIndex = 0;
-      state.answers = [];
+      state.qas = [];
+      state.evaluation = null;
     },
     NEXT_QUESTION(state) {
-      if (state.currentIndex < state.questions.length - 1) {
+      if (state.currentIndex < state.questions.length) {
         state.currentIndex++;
       }
     },
-    ADD_ANSWER(state, answer) {
-      state.answers.push(answer);
+    ADD_QA(state, qa) {
+      state.qas.push(qa);
     },
     SET_RECORDING(state, status) {
       state.isRecording = status;
@@ -56,39 +66,55 @@ const store = common_vendor.createStore({
       commit("SET_QUESTIONS", questions);
     },
     // 提交回答
-    submitAnswer({ commit, state }, { audioPath, text }) {
-      const answer = {
+    appendAnswer({ commit, state }, { audioPath, answer }) {
+      const submitQA = {
         question: state.questions[state.currentIndex],
         audioPath,
-        text
+        answer
       };
-      commit("ADD_ANSWER", answer);
+      commit("ADD_QA", submitQA);
       commit("NEXT_QUESTION");
     },
     // 提交评价
-    async submitEvaluation({ commit, state }) {
-      const evaluationData = {
-        questions: state.questions,
-        answers: state.answers
-      };
-      const [err, res] = await common_vendor.index.request({
-        url: config.deepseek.apiUrl,
+    async submitQAs({ commit, state }) {
+      state.isLoading = true;
+      const message = utils_index.formatQAForDeepSeek(state.qas);
+      await common_vendor.index.request({
+        url: config.config.deepseek.apiUrl,
         method: "POST",
         header: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${config.deepseek.apiKey}`
+          "Content-Type": "application/json"
+          // Authorization: `Bearer ${config.deepseek.apiKey}`,
         },
-        data: evaluationData
+        data: {
+          model: "deepseek-chat",
+          messages: [
+            {
+              role: "system",
+              content: config.config.deepseek.promptMessage
+            },
+            {
+              role: "user",
+              content: message
+            }
+          ]
+        },
+        success: (res) => {
+          const resultMessage = res.data.choices[0].message.content;
+          const resultJSON = utils_index.stringToJSON(resultMessage);
+          commit("SET_EVALUATION", resultJSON);
+          state.isLoading = false;
+          common_vendor.index.__f__("log", "at store/index.js:127", "诊断结果:", resultJSON);
+        },
+        fail: (err) => {
+          common_vendor.index.__f__("error", "at store/index.js:130", "请求失败:", err);
+          state.isLoading = false;
+        }
       });
-      if (err) {
-        throw new Error("Evaluation failed");
-      }
-      const result = res.data;
-      commit("SET_EVALUATION", result);
     }
   },
   getters: {
-    currentQuestion: (state) => state.questions[state.currentIndex],
+    currentQuestion: (state) => state.questions[state.currentIndex] ? state.questions[state.currentIndex] : state.questions[state.questions.length - 1],
     progress: (state) => (state.currentIndex + 1) / state.questions.length,
     isFinished: (state) => state.currentIndex >= state.questions.length
   }
